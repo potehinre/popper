@@ -1,0 +1,4 @@
+*.beam
+rel
+apps/popper/ebin
+deps

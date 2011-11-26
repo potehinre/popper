@@ -1,0 +1,13 @@
+{application, popper,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+		  cowboy
+                 ]},
+  {mod, { popper_app, []}},
+  {env, []}
+ ]}.
