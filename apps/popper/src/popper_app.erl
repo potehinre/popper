@@ -10,7 +10,12 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    popper_sup:start_link().
+    popper_sup:start_link(),
+    application:start(cowboy),
+    Dispatch = [{'_',[{'_',my_handler,[]}]}],
+    cowboy:start_listener(http, 400,
+			  cowboy_tcp_transport,[{port, 8080}],
+			  cowboy_http_protocol,[{dispatch,Dispatch}]).
 
 stop(_State) ->
     ok.
