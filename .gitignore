@@ -1,4 +1,5 @@
 *.beam
-rel
+rel/poppernode
 apps/popper/ebin
-deps
+deps/*
+
