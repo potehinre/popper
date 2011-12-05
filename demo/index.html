@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type="text/javascript" src="pusher-js/src/json2.js"></script>
+        <script type="text/javascript" src="pusher-js/src/pusher.js"></script>
+        <script type="text/javascript" src="pusher-js/src/pusher-licence.js"></script>
+        <!-- <script type="text/javascript" src="pusher-js/src/web-socket-js"></script> -->
+        <script type="text/javascript" src="pusher-js/src/web-socket-js-licence.js"></script>
+        <script type="text/javascript" src="pusher-js/src/pusher_event_dispatcher.js"></script>
+        <script type="text/javascript" src="pusher-js/src/pusher_channels.js"></script>
+        <script type="text/javascript" src="pusher-js/src/pusher_connection.js"></script>
+        <script type="text/javascript" src="pusher-js/src/pusher_machine.js"></script>
+        <script type="text/javascript" src="pusher-js/src/dependencies.js"></script>
+        <script type ="text/javascript">
+        $(document).ready(function()
+        {
+            //var webSocket = new WebSocket('ws://localhost:8080/app/popper?client=js&version=0.1');
+            var pusher = new Pusher("popper", {});
+            var channel = pusher.subscribe("presence-chat");
+            pusher.connection.bind("connected",function()
+            {
+                $("#chat").append("Real time is to go");
+            });
+ 
+            /*webSocket.onopen = function(event) {
+                webSocket.send("Hello Web Socket!");
+            };
+ 
+            webSocket.onmessage = function(event) {
+                $("#ololo").append("SHIT:" + event.data);
+            };
+ 
+            webSocket.onclose = function(event) {
+                alert('onclose');
+            };*/
+        });
+        </script>
+    </head>
+    <body>
+        <div id="chat">
+        </div>
+    </body>
+</html>
