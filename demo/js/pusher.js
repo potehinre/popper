@@ -166,7 +166,7 @@ Pusher.debug = function() {
 Pusher.VERSION = '0.1';
 
 Pusher.host = 'localhost';
-Pusher.ws_port = 8080;
+Pusher.ws_port = 1234;
 Pusher.wss_port = 443;
 Pusher.channel_auth_endpoint = '/pusher/auth';
 Pusher.connection_timeout = 5000;
