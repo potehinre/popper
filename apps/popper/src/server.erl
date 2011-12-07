@@ -18,8 +18,11 @@ handle('GET',["favicon.ico"],Req) ->
     Path=["favicon.ico"],
     Req:respond(404,[{"Content-Type","text/html"}],["File favicon /",Path,"not found"]).
 
-to_pusher_format(EventName,Data) ->
+pusher_connection_json(EventName,Data) ->
     mochijson2:encode({struct,[{<< "event" >>, EventName}, {<< "data" >>, {struct,Data}}]}).
+
+pusher_channel_json(EventName,ChannelName,Data) ->
+	mochijson2:encode({struct,[{<< "event" >>, EventName}, {<<"channel">>, ChannelName}, {<< "data" >> ,{struct, Data}}]}).
 
 subscribed(Ws,ChanPid) ->
 	receive
@@ -57,8 +60,8 @@ connection_established(Ws) ->
 					io:format("Chandata is ~p ~n",[ChannelData]),
 					{struct,[{<<"user_id">>,UserId}, {<<"user_info">>,UserInfo}]} = ChannelData,
 					channel:register_user(ChanPid, self(), UserId, UserInfo),
-		    		RespData = [{<< "presence" >>,{struct,[{<<"hash">>,<<"users">>},{<<"count">>,3}]}}],
-		    		Response = to_pusher_format(<< "pusher_internal:subscription_succeded" >>, RespData),
+		    		RespData = [{<< "presence" >>,{struct,[{<<"ids">>,[1,2,3,4]},{<<"hash">>,<<"users">>},{<<"count">>,3}]}}],
+		    		Response = pusher_channel_json(<< "pusher_internal:subscription_succeeded" >>, ChannelName, RespData),
 		    		Ws:send(Response)
 	    	end,
 			connection_established(Ws);
@@ -67,7 +70,7 @@ connection_established(Ws) ->
     end.    
 
 handle_websocket(Ws) ->
-    ConnEstablished = to_pusher_format(<< "pusher:connection_established" >>,[{<< "socket_id" >>, 13}]),
+    ConnEstablished = pusher_connection_json(<< "pusher:connection_established" >>,[{<< "socket_id" >>, 13}]),
     Ws:send(ConnEstablished),
 	connection_established(Ws).
     
