@@ -122,6 +122,16 @@ Pusher.authorizers = {
     script.src = Pusher.channel_auth_endpoint+'?callback='+encodeURIComponent(callback_name)+'&'+qstring;
     var head = document.getElementsByTagName("head")[0] || document.documentElement;
     head.insertBefore( script, head.firstChild );
+  },
+  hacked: function(pusher, callback) 
+  {
+    user_id = Math.random();
+    data = {"auth":"ololo:7878",
+            "channel_data":
+                   {"user_id":user_id,
+                    "user_info":
+                    {"name":"potekhin"+user_id,"email":"potekhin@sports.ru","twitter":"@potekhin"}}};
+    callback(false, data);
   }
 };
 
@@ -222,7 +232,7 @@ Pusher.Channel.factory = function(channel_name, pusher){
     Pusher.Util.extend(channel, Pusher.Channel.PrivateChannel);
   } else if(channel_name.indexOf(Pusher.Channel.presence_prefix) === 0) {
  // Авторизация в presence не нужна, по крайней мере покачто
- //   Pusher.Util.extend(channel, Pusher.Channel.PrivateChannel);
+    Pusher.Util.extend(channel, Pusher.Channel.PrivateChannel);
     Pusher.Util.extend(channel, Pusher.Channel.PresenceChannel);
   };
   channel.init();// inheritable constructor
