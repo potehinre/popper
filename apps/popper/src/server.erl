@@ -27,12 +27,18 @@ connection_established(Ws) ->
 					io:format("Chandata is ~p ~n",[ChannelData]),
 					{struct,[{<<"user_id">>,UserId}, {<<"user_info">>,UserInfo}]} = ChannelData,
 					channel:register_user(ChanPid, self(), UserId, UserInfo),
-		    		RespData = [{<< "presence" >>,{struct,[{<<"ids">>,[1,2,3,4]},{<<"hash">>,<<"users">>},{<<"count">>,3}]}}],
+					Users = channel:take_users(ChanPid),
+					Ids = lists:map(fun(X) -> element(1,X) end,Users),
+					Count = length(Users),
+		    		RespData = [{<< "presence" >>,{struct,[{<<"ids">>,Ids},{<<"hash">>,Users},{<<"count">>,Count}]}}],
 		    		Response = util:pusher_channel_json(<< "pusher_internal:subscription_succeeded" >>, ChannelName, RespData),
-		    		Ws:send(Response);
+		    		Ws:send(Response),
+					link(ChanPid);
 				<<"pusher:unsubscribe">> ->
 					[{<<"channel">>,ChannelName}] = Data,
 					channel_hub:unsubscribe(self(),ChannelName),
+					ChanPid = channel_hub:chan_pid_by_name(ChannelName),
+					unlink(ChanPid),
 					Ws:send("Unsubscription succeded")
 	    	end,
 			connection_established(Ws);

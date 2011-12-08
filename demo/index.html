@@ -25,7 +25,15 @@
             var channel = pusher.subscribe("presence-chat");
             pusher.connection.bind("connected",function()
             {
-                $("#chat").append("Real time is to go");
+                $("#chat").append("<p>Real time is to go</p>");
+            });
+            channel.bind("pusher_internal:member_added",function(data)
+            {
+                $("#chat").append("<p>Some motherfucker connected,His name is:" + data.user_info.name + "</p>");
+            });
+            channel.bind("pusher_internal:member_removed",function(data)
+            {
+                $("#chat").append("<p>Some motherfucker disconnected,His id is:" + data.user_id + "</p>");
             });
  
  /*           webSocket.onopen = function(event) {

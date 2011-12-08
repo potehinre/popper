@@ -49,7 +49,7 @@ handle_call({subscribe,ChannelName},_From,State) ->
 			{ok,Pid} = channel:start_link(),
 			add_new_channel(ChannelName,Pid),
 			{reply,Pid,State};
-		[{_ChanName,ChanPid}|[]] ->
+		[{_ChanName,ChanPid}] ->
 			{reply,ChanPid,State}
 	end;
 

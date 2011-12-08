@@ -25,7 +25,7 @@ broadcast_message(Pid,Message) ->
 	gen_server:cast(Pid,{broadcast_message,self(),Message}).
 
 take_users(Pid) ->
-	[Name || {_,Name} <- gen_server:call(Pid,take_users)].
+	[UserInfo || {_,UserInfo} <- gen_server:call(Pid,take_users)].
 	
 
 %% ====================================================================
@@ -37,6 +37,7 @@ start_link() ->
 
 init([]) ->
 	io:format("Chan ~p started ~n",[self()]),
+	process_flag(trap_exit,true),
     {ok, #state{}}.
 
 handle_call(take_users,_From, State) ->
@@ -50,10 +51,10 @@ handle_cast({broadcast_message,From,Msg}, State) ->
     {noreply, State};
 
 handle_cast({register_user,Pid,Name,Info}, State) ->
-	io:format("New user registered ~p ~n", [Name]),
 	NewState = State#state{users=orddict:store(Pid,{Name,Info},State#state.users)},
 	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
 	[UserPid ! {member_added,{Name,Info,ChannelName}} || UserPid <- orddict:fetch_keys(NewState#state.users)],
+	io:format("New user registered ~p ~n", [Name]),
 	{noreply, NewState};
 
 handle_cast({unregister_user,Pid}, State) ->
@@ -63,6 +64,11 @@ handle_cast({unregister_user,Pid}, State) ->
 	[UserPid ! {member_removed,{Name,ChannelName}} || UserPid <- orddict:fetch_keys(NewState#state.users)],
 	io:format("user unregistered ~p ~n", [_Info]),
 	{noreply, NewState}.
+
+handle_info({'EXIT', Pid, Reason},State) ->
+	io:format("user ~p failed with reason ~p ~n",[Pid,Reason]),
+	unregister_user(self(),Pid),
+	{noreply, State};
 
 handle_info(Info, State) ->
     {noreply, State}.
