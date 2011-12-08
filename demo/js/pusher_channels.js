@@ -125,7 +125,7 @@ Pusher.authorizers = {
   },
   hacked: function(pusher, callback) 
   {
-    user_id = Math.random();
+    user_id = Math.random().toString();
     data = {"auth":"ololo:7878",
             "channel_data":
                    {"user_id":user_id,

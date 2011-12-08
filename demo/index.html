@@ -16,6 +16,11 @@
         {
             //var webSocket = new WebSocket('ws://localhost:1234/app/popper?client=js&version=0.1');
             
+            $("#unsubscribe").click(function(event)
+            {
+                alert("OLOLO");
+                pusher.unsubscribe("presence-chat");
+            });
             var pusher = new Pusher("popper", {});
             var channel = pusher.subscribe("presence-chat");
             pusher.connection.bind("connected",function()
@@ -40,5 +45,6 @@
     <body>
         <div id="chat">
         </div>
+        <a id="unsubscribe" href="">Unsubscribe</a>
     </body>
 </html>

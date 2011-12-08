@@ -26,6 +26,7 @@ broadcast_message(Pid,Message) ->
 
 take_users(Pid) ->
 	[Name || {_,Name} <- gen_server:call(Pid,take_users)].
+	
 
 %% ====================================================================
 %% Server functions
@@ -51,11 +52,16 @@ handle_cast({broadcast_message,From,Msg}, State) ->
 handle_cast({register_user,Pid,Name,Info}, State) ->
 	io:format("New user registered ~p ~n", [Name]),
 	NewState = State#state{users=orddict:store(Pid,{Name,Info},State#state.users)},
-%	[UserPid ! {newuserlist,[Name || {Pid,Name} <- NewState#state.users]} || UserPid <-orddict:fetch_keys(NewState#state.users)],
+	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
+	[UserPid ! {member_added,{Name,Info,ChannelName}} || UserPid <- orddict:fetch_keys(NewState#state.users)],
 	{noreply, NewState};
 
 handle_cast({unregister_user,Pid}, State) ->
+	{Name,_Info} = orddict:fetch(Pid,State#state.users),
 	NewState = State#state{users=orddict:erase(Pid, State#state.users)},
+	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
+	[UserPid ! {member_removed,{Name,ChannelName}} || UserPid <- orddict:fetch_keys(NewState#state.users)],
+	io:format("user unregistered ~p ~n", [_Info]),
 	{noreply, NewState}.
 
 handle_info(Info, State) ->
