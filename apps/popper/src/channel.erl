@@ -16,7 +16,7 @@
 %% External functions
 %% ====================================================================
 register_user(Pid,UserPid,Name,UserInfo) ->
-	gen_server:cast(Pid,{register_user,UserPid,Name,UserInfo}).
+	gen_server:call(Pid,{register_user,UserPid,Name,UserInfo}).
 
 unregister_user(Pid,UserPid) ->
 	gen_server:cast(Pid,{unregister_user,UserPid}).
@@ -42,20 +42,21 @@ init([]) ->
 
 handle_call(take_users,_From, State) ->
 	Reply = orddict:to_list(State#state.users),
-	{reply, Reply, State}.
+	{reply, Reply, State};
+
+handle_call({register_user,Pid,Name,Info},_From,State) ->
+	NewState = State#state{users=orddict:store(Pid,{Name,Info},State#state.users)},
+	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
+	[UserPid ! {member_added,{Name,Info,ChannelName}} || UserPid <- orddict:fetch_keys(NewState#state.users)],
+	io:format("New user registered ~p ~n", [Name]),
+	Reply = [User  || {_,User} <- orddict:to_list(NewState#state.users)],
+	{reply, Reply, NewState}.
 
 handle_cast({broadcast_message,From,Msg}, State) ->
 	io:format("Channel received a new  message from ~p ~p ~n", [From,Msg]),
 	{PosterName,_Info} = orddict:fetch(From,State#state.users),
 	[UserPid ! {msg,PosterName,Msg} || UserPid <- orddict:fetch_keys(State#state.users)],
     {noreply, State};
-
-handle_cast({register_user,Pid,Name,Info}, State) ->
-	NewState = State#state{users=orddict:store(Pid,{Name,Info},State#state.users)},
-	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
-	[UserPid ! {member_added,{Name,Info,ChannelName}} || UserPid <- orddict:fetch_keys(NewState#state.users)],
-	io:format("New user registered ~p ~n", [Name]),
-	{noreply, NewState};
 
 handle_cast({unregister_user,Pid}, State) ->
 	{Name,_Info} = orddict:fetch(Pid,State#state.users),

@@ -24,10 +24,9 @@ connection_established(Ws) ->
 				<<"pusher:subscribe">> ->
 					[{<< "channel" >>,ChannelName}, _, {<< "channel_data" >>,ChannelData}] = Data,
 					ChanPid = channel_hub:subscribe(ChannelName),
-					io:format("Chandata is ~p ~n",[ChannelData]),
 					{struct,[{<<"user_id">>,UserId}, {<<"user_info">>,UserInfo}]} = ChannelData,
-					channel:register_user(ChanPid, self(), UserId, UserInfo),
-					Users = channel:take_users(ChanPid),
+					Users =channel:register_user(ChanPid, self(), UserId, UserInfo),
+					io:format("Users is ~p ~n",[Users]),
 					Ids = lists:map(fun(X) -> element(1,X) end,Users),
 					Count = length(Users),
 		    		RespData = [{<< "presence" >>,{struct,[{<<"ids">>,Ids},{<<"hash">>,Users},{<<"count">>,Count}]}}],
