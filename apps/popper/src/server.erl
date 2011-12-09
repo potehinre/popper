@@ -12,6 +12,13 @@ handle_http(Req) ->
 handle('GET',["app","popper"],Req) ->
 	Req:ok([]);
 
+handle('POST',["apps","popper","channels",ChannelName,"events"],Req) ->
+	[{"name",EventName}] = Req:parse_qs(),
+	EventData = Req:get(body),
+	ChanPid = channel_hub:chan_pid_by_name(ChannelName),
+	channel:broadcast_event(ChanPid, EventName, ChannelName, EventData),
+	Req:ok([]);
+
 handle('GET',["favicon.ico"],Req) ->
     Path=["favicon.ico"],
     Req:respond(404,[{"Content-Type","text/html"}],["File favicon /",Path,"not found"]).
