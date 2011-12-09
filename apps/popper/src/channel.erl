@@ -8,7 +8,7 @@
 
 -behaviour(gen_server).
 -export([start_link/0,init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3,
-		 broadcast_message/2,register_user/4,unregister_user/2,take_users/1]).
+		 broadcast_event/4,register_user/4,unregister_user/2,take_users/1]).
 
 -record(state, {users=orddict:new()}).
 
@@ -21,8 +21,8 @@ register_user(Pid,UserPid,Name,UserInfo) ->
 unregister_user(Pid,UserPid) ->
 	gen_server:cast(Pid,{unregister_user,UserPid}).
 
-broadcast_message(Pid,Message) ->
-	gen_server:cast(Pid,{broadcast_message,self(),Message}).
+broadcast_event(Pid,EventName,ChannelName,EventData) ->
+	gen_server:cast(Pid,{broadcast_event,self(),EventName,ChannelName,EventData}).
 
 take_users(Pid) ->
 	[UserInfo || {_,UserInfo} <- gen_server:call(Pid,take_users)].
@@ -52,10 +52,9 @@ handle_call({register_user,Pid,Name,Info},_From,State) ->
 	Reply = [User  || {_,User} <- orddict:to_list(NewState#state.users)],
 	{reply, Reply, NewState}.
 
-handle_cast({broadcast_message,From,Msg}, State) ->
-	io:format("Channel received a new  message from ~p ~p ~n", [From,Msg]),
-	{PosterName,_Info} = orddict:fetch(From,State#state.users),
-	[UserPid ! {msg,PosterName,Msg} || UserPid <- orddict:fetch_keys(State#state.users)],
+handle_cast({broadcast_event,From,EventName,ChannelName,EventData}, State) ->
+	io:format("Channel received a new  message from ~p ~p ~n", [From,EventData]),
+	[UserPid ! {custom_event,{EventName,ChannelName,EventData}} || UserPid <- orddict:fetch_keys(State#state.users)],
     {noreply, State};
 
 handle_cast({unregister_user,Pid}, State) ->

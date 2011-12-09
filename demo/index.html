@@ -1,5 +1,17 @@
 <html>
     <head>
+        <style>
+            .message
+	        {
+	        color:red;
+	        font:bold 12pt Arial;
+	        }
+            .connection
+            {
+            color:blue,
+            font:bold 12pt Arial;
+            }
+        </style>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
         <script type="text/javascript" src="js/pusher.js"></script>
@@ -18,22 +30,32 @@
             
             $("#unsubscribe").click(function(event)
             {
-                alert("OLOLO");
                 pusher.unsubscribe("presence-chat");
+            });
+            $("#trigger").click(function(event)
+            {
+                msg = $('input[name="message"]').val();
+                $('input[name="message"]').val("");
+                data={"message":msg};
+                channel.trigger("chat_msg",data);
             });
             var pusher = new Pusher("popper", {});
             var channel = pusher.subscribe("presence-chat");
             pusher.connection.bind("connected",function()
             {
-                $("#chat").append("<p>Real time is to go</p>");
+                $("#chat").append("<p>Connected to server!</p>");
             });
             channel.bind("pusher_internal:member_added",function(data)
             {
-                $("#chat").append("<p>Some motherfucker connected,His name is:" + data.user_info.name + "</p>");
+                $("#chat").append("<p class='connection'>User connected,His name is:" + data.user_info.name + "</p>");
             });
             channel.bind("pusher_internal:member_removed",function(data)
             {
-                $("#chat").append("<p>Some motherfucker disconnected,His id is:" + data.user_id + "</p>");
+                $("#chat").append("<p class='connection'>User disconnected,His id is:" + data.user_id + "</p>");
+            });
+            channel.bind("chat_msg",function(data)
+            {
+                $("#chat").append("<p class='message'>Message received:" + data["message"] + "</p>");
             });
  
  /*           webSocket.onopen = function(event) {
@@ -53,7 +75,7 @@
     <body>
         <div id="chat">
         </div>
-        <a id="unsubscribe" href="">Unsubscribe</a>
-        <a id="trigger" href="">Trigger</a>
+        <input name="message" type="text"></input>
+        <p id="trigger" href="">Send</a>
     </body>
 </html>
