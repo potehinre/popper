@@ -8,15 +8,17 @@
 	        }
             .connection
             {
-            color:blue,
+            color:blue;
             font:bold 12pt Arial;
             }
         </style>
+        <!-- <script type="text/javascript" src="../web-socket-js/swfobject.js"></script>
+             <script type="text/javascript" src="../web-socket-js/web_socket.js"></script> -->
+        <!-- <script type="text/javascript" src="pusher-js/src/web-socket-js"></script> -->
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
         <script type="text/javascript" src="js/pusher.js"></script>
         <script type="text/javascript" src="js/pusher-licence.js"></script>
-        <!-- <script type="text/javascript" src="pusher-js/src/web-socket-js"></script> -->
         <script type="text/javascript" src="js/web-socket-js-licence.js"></script>
         <script type="text/javascript" src="js/pusher_event_dispatcher.js"></script>
         <script type="text/javascript" src="js/pusher_channels.js"></script>
@@ -26,7 +28,8 @@
         <script type ="text/javascript">
         $(document).ready(function()
         {
-            //var webSocket = new WebSocket('ws://localhost:1234/app/popper?client=js&version=0.1');
+            //WEB_SOCKET_SWF_LOCATION = "../web-socket-js/WebSocketMain.swf";
+            //var webSocket = new WebSocket('ws://127.0.0.1:1234/app/popper?client=js&version=0.1');
             
             $("#unsubscribe").click(function(event)
             {
@@ -57,8 +60,8 @@
             {
                 $("#chat").append("<p class='message'>Message received:" + data["message"] + "</p>");
             });
- 
- /*           webSocket.onopen = function(event) {
+            /*
+            webSocket.onopen = function(event) {
                $("#chat").append("Connected to ws");
             };
  
@@ -68,7 +71,8 @@
  
             webSocket.onclose = function(event) {
                 alert('onclose');
-            }; */
+            };
+            */
         });
         </script>
     </head>

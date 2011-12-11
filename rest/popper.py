@@ -35,7 +35,7 @@ class Channel(object):
     def trigger(self, event, data={}, socket_id=None):
         json_data = json.dumps(data)
         status = self.send_request(self.signed_query(event, json_data, socket_id), json_data)
-        if status == 202:
+        if status == 200:
             return True
         elif status == 401:
             raise AuthenticationError

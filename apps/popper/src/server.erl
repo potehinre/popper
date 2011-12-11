@@ -3,8 +3,9 @@
 
 start_link(Port) ->
 	    misultin:start_link([{port,Port},
-							 {loop, fun(Req)   -> handle_http(Req) end},
-	                         {ws_loop, fun(Ws) -> handle_websocket(Ws) end}]).
+				 {name, misultin_ws},
+				 {loop, fun(Req)   -> handle_http(Req) end},
+	             {ws_loop, fun(Ws) -> handle_websocket(Ws) end}]).
 
 handle_http(Req) ->
     handle(Req:get(method),Req:resource([lowercase,urlencode]),Req).
@@ -14,9 +15,11 @@ handle('GET',["app","popper"],Req) ->
 
 handle('POST',["apps","popper","channels",ChannelName,"events"],Req) ->
 	[{"name",EventName}] = Req:parse_qs(),
-	EventData = Req:get(body),
-	ChanPid = channel_hub:chan_pid_by_name(ChannelName),
-	channel:broadcast_event(ChanPid, EventName, ChannelName, EventData),
+    ChannelNameBin = list_to_binary(ChannelName),
+    EventNameBin = list_to_binary(EventName),
+	{struct,EventData} = mochijson2:decode(Req:get(body)),
+	[{_,ChanPid}] = channel_hub:chan_pid_by_name(ChannelNameBin),
+	channel:broadcast_event(ChanPid, EventNameBin, ChannelNameBin, EventData),
 	Req:ok([]);
 
 handle('GET',["favicon.ico"],Req) ->
@@ -45,7 +48,7 @@ connection_established(Ws) ->
 						<<"pusher:unsubscribe">> ->
 							[{<<"channel">>,ChannelName}] = Data,
 							channel_hub:unsubscribe(self(),ChannelName),
-							ChanPid = channel_hub:chan_pid_by_name(ChannelName),
+							[{_,ChanPid}] = channel_hub:chan_pid_by_name(ChannelName),
 							unlink(ChanPid),
 							Ws:send("Unsubscription succeded")
 	    			end,
