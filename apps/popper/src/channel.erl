@@ -36,7 +36,6 @@ start_link() ->
 	gen_server:start_link(?MODULE,[],[]).
 
 init([]) ->
-	io:format("Chan ~p started ~n",[self()]),
 	process_flag(trap_exit,true),
     {ok, #state{}}.
 
@@ -44,25 +43,27 @@ handle_call(take_users,_From, State) ->
 	Reply = orddict:to_list(State#state.users),
 	{reply, Reply, State};
 
-handle_call({register_user,Pid,Name,Info},_From,State) ->
-	NewState = State#state{users=orddict:store(Pid,{Name,Info},State#state.users)},
+handle_call({register_user,Pid,UserId,UserInfo},_From,State) ->
+	NewState = State#state{users=orddict:store(Pid,{UserId,UserInfo},State#state.users)},
 	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
-	[UserPid ! {member_added,{Name,Info,ChannelName}} || UserPid <- orddict:fetch_keys(NewState#state.users)],
-	io:format("New user registered ~p ~n", [Name]),
+	UserData = [{<<"user_id">>,UserId},{<<"user_info">>,UserInfo}],
+	Json = util:pusher_channel_json(<<"pusher_internal:member_added">>, ChannelName, UserData),
+	[UserPid ! {member_added,Json} || UserPid <- orddict:fetch_keys(NewState#state.users)],
 	Reply = [User  || {_,User} <- orddict:to_list(NewState#state.users)],
 	{reply, Reply, NewState}.
 
-handle_cast({broadcast_event,From,EventName,ChannelName,EventData}, State) ->
-	io:format("Channel received a new  message from ~p ~p ~n", [From,EventData]),
-	[UserPid ! {custom_event,{EventName,ChannelName,EventData}} || UserPid <- orddict:fetch_keys(State#state.users)],
+handle_cast({broadcast_event,_From,EventName,ChannelName,EventData}, State) ->
+	Json = util:pusher_channel_json(EventName, ChannelName, EventData),
+	[UserPid ! {custom_event,Json} || UserPid <- orddict:fetch_keys(State#state.users)],
     {noreply, State};
 
 handle_cast({unregister_user,Pid}, State) ->
-	{Name,_Info} = orddict:fetch(Pid,State#state.users),
+	{UserId,_UserInfo} = orddict:fetch(Pid,State#state.users),
 	NewState = State#state{users=orddict:erase(Pid, State#state.users)},
 	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
-	[UserPid ! {member_removed,{Name,ChannelName}} || UserPid <- orddict:fetch_keys(NewState#state.users)],
-	io:format("user unregistered ~p ~n", [_Info]),
+	UserData = [{<<"user_id">>,UserId}],
+	Json = util:pusher_channel_json(<<"pusher_internal:member_removed">>,ChannelName,UserData),
+	[UserPid ! {member_removed,Json} || UserPid <- orddict:fetch_keys(NewState#state.users)],
 	{noreply, NewState}.
 
 handle_info({'EXIT', Pid, Reason},State) ->
@@ -70,10 +71,10 @@ handle_info({'EXIT', Pid, Reason},State) ->
 	unregister_user(self(),Pid),
 	{noreply, State};
 
-handle_info(Info, State) ->
+handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(Reason, State) ->
+terminate(_Reason, _State) ->
     ok.
 
 code_change(OldVsn, State, Extra) ->

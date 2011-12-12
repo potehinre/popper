@@ -59,20 +59,14 @@ connection_established(Ws) ->
 					channel:broadcast_event(ChanPid,EventName,ChannelName,EventData),
 					connection_established(Ws)
 			end;			
-		{member_added,{UserId,UserInfo,ChannelName}} ->
-			UserData = [{<<"user_id">>,UserId},{<<"user_info">>,UserInfo}],
-			Result = util:pusher_channel_json(<<"pusher_internal:member_added">>, ChannelName, UserData),
-			Ws:send(Result),
+		{member_added,Json} ->
+			Ws:send(Json),
 			connection_established(Ws);
-		{member_removed,{UserId,ChannelName}} ->
-			UserData = [{<<"user_id">>,UserId}],
-			Result = util:pusher_channel_json(<<"pusher_internal:member_removed">>,ChannelName,UserData),
-			Ws:send(Result),
+		{member_removed,Json} ->
+			Ws:send(Json),
 			connection_established(Ws);
-		{custom_event,{EventName,ChannelName,EventData}} ->
-			io:format("Custom event received! ~p ~p ~p ~n",[EventName,ChannelName,EventData]),
-			Result = util:pusher_channel_json(EventName, ChannelName, EventData),
-			Ws:send(Result),
+		{custom_event,Json} ->
+			Ws:send(Json),
 			connection_established(Ws);
 		_Ignore ->
 			connection_established(Ws)
