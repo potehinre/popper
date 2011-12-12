@@ -19,7 +19,7 @@ handle('POST',["apps","popper","channels",ChannelName,"events"],Req) ->
     EventNameBin = list_to_binary(EventName),
 	{struct,EventData} = mochijson2:decode(Req:get(body)),
 	[{_,ChanPid}] = channel_hub:chan_pid_by_name(ChannelNameBin),
-	channel:broadcast_event(ChanPid, EventNameBin, ChannelNameBin, EventData),
+	channel:event(ChanPid, EventNameBin, ChannelNameBin, EventData),
 	Req:ok([]);
 
 handle('GET',["favicon.ico"],Req) ->
