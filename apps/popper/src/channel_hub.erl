@@ -21,9 +21,14 @@ init([]) ->
 	ets:new(channel_pid_to_name,[set,named_table]),
 	{ok,no_state}.
 
-add_new_channel(Name, Pid) ->
-	ets:insert(channel_name_to_pid,{Name,Pid}),
-	ets:insert(channel_pid_to_name,{Pid,Name}).
+add_new_channel(ChanName, ChanPid) ->
+	ets:insert(channel_name_to_pid,{ChanName,ChanPid}),
+	ets:insert(channel_pid_to_name,{ChanPid,ChanName}).
+
+remove_channel(ChanPid) ->
+	[{_,ChanName}]=chan_name_by_pid(ChanPid),
+	ets:delete(channel_name_to_pid,ChanName),
+	ets:delete(channel_pid_to_name,ChanPid).
 
 chan_pid_by_name(Name) ->
 	ets:lookup(channel_name_to_pid,Name).
@@ -48,8 +53,9 @@ handle_call(channel_name_to_pid_info,_From,State) ->
 handle_cast(_Msg,State) ->
 	{noreply,State}.
 
-handle_info({'EXIT',Pid,Reason},State) ->
-	io:format("~p channel is down!!!With reason ~p ~n",[Pid,Reason]),
+handle_info({'EXIT',ChanPid,Reason},State) ->
+	remove_channel(ChanPid),
+	io:format("~p channel is down!!!With reason ~p ~n",[ChanPid,Reason]),
 	{noreply,State};
 
 handle_info(_Info,State) ->
