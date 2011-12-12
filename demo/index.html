@@ -34,6 +34,19 @@
             $("#unsubscribe").click(function(event)
             {
                 pusher.unsubscribe("presence-chat");
+                var channel=pusher.subscribe("presence-chat");
+                channel.bind("pusher_internal:member_added",function(data)
+                {
+                    $("#chat").append("<p class='connection'>User connected,His name is:" + data.user_info.name + "</p>");
+                });
+                channel.bind("pusher_internal:member_removed",function(data)
+                {
+                    $("#chat").append("<p class='connection'>User disconnected,His id is:" + data.user_id + "</p>");
+                });
+                channel.bind("chat_msg",function(data)
+                {
+                    $("#chat").append("<p class='message'>Message received:" + data["message"] + "</p>");
+                });
             });
             $("#trigger").click(function(event)
             {

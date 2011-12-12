@@ -49,8 +49,7 @@ connection_established(Ws) ->
 							[{<<"channel">>,ChannelName}] = Data,
 							[{_,ChanPid}] = channel_hub:chan_pid_by_name(ChannelName),
 							channel:unsubscribe(ChanPid),
-							unlink(ChanPid),
-							io:format("Unsubscription succeeded")
+							unlink(ChanPid)
 	    			end,
 					connection_established(Ws);
 				%%Channel Events
