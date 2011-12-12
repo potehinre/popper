@@ -75,13 +75,19 @@ handle_cast({event,_From,EventName,ChannelName,EventData}, State) ->
 handle_cast({unsubscribe,UserPid},State) ->
 	{NewState,Json}=unregister_user(UserPid, State),
 	broadcast_event(NewState,Json),
-	{noreply,NewState}.
+	case orddict:size(NewState#state.users) of 
+		0 ->  exit(normal);
+		_ ->  {noreply, NewState}
+	end.
 
 handle_info({'EXIT', Pid, Reason},State) ->
 	io:format("user ~p failed with reason ~p ~n",[Pid,Reason]),
 	{NewState,Json}=unregister_user(Pid,State),
 	broadcast_event(NewState,Json),
-	{noreply, NewState};
+	case orddict:size(NewState#state.users) of 
+		0 ->  exit(normal);
+		_ ->  {noreply, NewState}
+	end;	
 
 handle_info(_Info, State) ->
     {noreply, State}.
