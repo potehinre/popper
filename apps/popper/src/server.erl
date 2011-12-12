@@ -58,14 +58,8 @@ connection_established(Ws) ->
 					[{_,ChanPid}] = channel_hub:chan_pid_by_name(ChannelName),
 					channel:broadcast_event(ChanPid,EventName,ChannelName,EventData),
 					connection_established(Ws)
-			end;			
-		{member_added,Json} ->
-			Ws:send(Json),
-			connection_established(Ws);
-		{member_removed,Json} ->
-			Ws:send(Json),
-			connection_established(Ws);
-		{custom_event,Json} ->
+			end;
+		{event,Json} ->
 			Ws:send(Json),
 			connection_established(Ws);
 		_Ignore ->

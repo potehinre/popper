@@ -48,13 +48,13 @@ handle_call({register_user,Pid,UserId,UserInfo},_From,State) ->
 	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
 	UserData = [{<<"user_id">>,UserId},{<<"user_info">>,UserInfo}],
 	Json = util:pusher_channel_json(<<"pusher_internal:member_added">>, ChannelName, UserData),
-	[UserPid ! {member_added,Json} || UserPid <- orddict:fetch_keys(NewState#state.users)],
+	[UserPid ! {event,Json} || UserPid <- orddict:fetch_keys(NewState#state.users)],
 	Reply = [User  || {_,User} <- orddict:to_list(NewState#state.users)],
 	{reply, Reply, NewState}.
 
 handle_cast({broadcast_event,_From,EventName,ChannelName,EventData}, State) ->
 	Json = util:pusher_channel_json(EventName, ChannelName, EventData),
-	[UserPid ! {custom_event,Json} || UserPid <- orddict:fetch_keys(State#state.users)],
+	[UserPid ! {event,Json} || UserPid <- orddict:fetch_keys(State#state.users)],
     {noreply, State};
 
 handle_cast({unregister_user,Pid}, State) ->
@@ -63,7 +63,7 @@ handle_cast({unregister_user,Pid}, State) ->
 	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
 	UserData = [{<<"user_id">>,UserId}],
 	Json = util:pusher_channel_json(<<"pusher_internal:member_removed">>,ChannelName,UserData),
-	[UserPid ! {member_removed,Json} || UserPid <- orddict:fetch_keys(NewState#state.users)],
+	[UserPid ! {event,Json} || UserPid <- orddict:fetch_keys(NewState#state.users)],
 	{noreply, NewState}.
 
 handle_info({'EXIT', Pid, Reason},State) ->
