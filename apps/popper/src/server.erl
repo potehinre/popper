@@ -37,7 +37,7 @@ connection_established(Ws) ->
 							[{<< "channel" >>,ChannelName}, _, {<< "channel_data" >>,ChannelData}] = Data,
 							ChanPid = channel_hub:subscribe(ChannelName),
 							{struct,[{<<"user_id">>,UserId}, {<<"user_info">>,UserInfo}]} = ChannelData,
-							Users =channel:register_user(ChanPid, self(), UserId, UserInfo),
+							Users = channel:subscribe(ChanPid, self(), UserId, UserInfo),
 							io:format("Users is ~p ~n",[Users]),
 							Ids = lists:map(fun(X) -> element(1,X) end,Users),
 							Count = length(Users),
@@ -47,16 +47,16 @@ connection_established(Ws) ->
 							link(ChanPid);
 						<<"pusher:unsubscribe">> ->
 							[{<<"channel">>,ChannelName}] = Data,
-							channel_hub:unsubscribe(self(),ChannelName),
 							[{_,ChanPid}] = channel_hub:chan_pid_by_name(ChannelName),
+							channel:unsubscribe(ChanPid),
 							unlink(ChanPid),
-							Ws:send("Unsubscription succeded")
+							io:format("Unsubscription succeeded")
 	    			end,
 					connection_established(Ws);
 				%%Channel Events
 				{struct,[{<<"event">>,EventName},{<<"data">>,{struct,EventData}},{<<"channel">>,ChannelName}]} ->
 					[{_,ChanPid}] = channel_hub:chan_pid_by_name(ChannelName),
-					channel:broadcast_event(ChanPid,EventName,ChannelName,EventData),
+					channel:event(ChanPid,EventName,ChannelName,EventData),
 					connection_established(Ws)
 			end;
 		{event,Json} ->
