@@ -55,7 +55,6 @@ handle_cast(_Msg,State) ->
 
 handle_info({'EXIT',ChanPid,Reason},State) ->
 	remove_channel(ChanPid),
-	io:format("~p channel is down!!!With reason ~p ~n",[ChanPid,Reason]),
 	{noreply,State};
 
 handle_info(_Info,State) ->

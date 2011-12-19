@@ -81,7 +81,6 @@ handle_cast({unsubscribe,UserPid},State) ->
 	end.
 
 handle_info({'EXIT', Pid, Reason},State) ->
-	io:format("user ~p failed with reason ~p ~n",[Pid,Reason]),
 	{NewState,Json}=unregister_user(Pid,State),
 	broadcast_event(NewState,Json),
 	case orddict:size(NewState#state.users) of 

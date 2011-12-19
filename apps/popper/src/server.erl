@@ -4,6 +4,8 @@
 start_link(Port) ->
 	    misultin:start_link([{port,Port},
 				 {name, misultin_ws},
+				 {acceptors_poolsize,1000},
+				 {max_connections,100000},
 				 {loop, fun(Req)   -> handle_http(Req) end},
 	             {ws_loop, fun(Ws) -> handle_websocket(Ws) end}]).
 
@@ -38,7 +40,6 @@ connection_established(Ws) ->
 							ChanPid = channel_hub:subscribe(ChannelName),
 							{struct,[{<<"user_id">>,UserId}, {<<"user_info">>,UserInfo}]} = ChannelData,
 							Users = channel:subscribe(ChanPid, self(), UserId, UserInfo),
-							io:format("Users is ~p ~n",[Users]),
 							Ids = lists:map(fun(X) -> element(1,X) end,Users),
 							Count = length(Users),
 		    				RespData = [{<< "presence" >>,{struct,[{<<"ids">>,Ids},{<<"hash">>,Users},{<<"count">>,Count}]}}],
