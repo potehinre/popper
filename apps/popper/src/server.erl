@@ -56,6 +56,9 @@ connection_established(Ws) ->
 				{struct,[{<<"event">>,EventName},{<<"data">>,{struct,EventData}},{<<"channel">>,ChannelName}]} ->
 					[{_,ChanPid}] = channel_hub:chan_pid_by_name(ChannelName),
 					channel:event(ChanPid,EventName,ChannelName,EventData),
+					connection_established(Ws);
+				_Ignore ->
+					io:format("Incorrect Json:~p ~n",[_Ignore]),
 					connection_established(Ws)
 			end;
 		{event,Json} ->
