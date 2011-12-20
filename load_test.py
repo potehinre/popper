@@ -31,6 +31,49 @@ class ConnectionNotEstablishedError(Exception):
     def __str__(self):
         return repr(self.value)
         
+# Json Templates Function
+def unsubscribe_json_template():
+    result=OrderedDict()
+    result['event']='pusher:unsubscribe'
+    result['data']=OrderedDict([("channel","%s")])
+    return json.dumps(result)
+    
+def subscribe_json_template():
+    chan_data=OrderedDict()
+    chan_data['user_id']="%s"
+    chan_data['user_info']=OrderedDict([("name","load_tester")])
+        
+    data=OrderedDict()
+    data['channel']="%s"
+    data['auth']="app:lalala"
+    data['channel_data'] = chan_data
+        
+    result=OrderedDict()
+    result['event']="pusher:subscribe"
+    result['data']=data
+        
+    return json.dumps(result)
+    
+def msg_json_template():
+    result=OrderedDict()
+    result['event']="chat_msg"
+    result['data']=OrderedDict([("message","%s")])
+    result['channel']="%s"
+    return json.dumps(result)
+
+#templates
+msg_template=msg_json_template()
+subscribe_template=subscribe_json_template()
+unsubscribe_template=unsubscribe_json_template()
+
+def render_message(channel_name,msg):
+    return msg_template%(msg,channel_name)
+    
+def render_subscribe(channel_name,user_id):
+    return subscribe_template%(channel_name,user_id)
+    
+def render_unsubscribe(channel_name):
+    return unsubscribe_template%(channel_name)
 
 class PusherClient(object):
     def __init__(self,host,port,path):
@@ -40,35 +83,15 @@ class PusherClient(object):
             raise ConnectionNotEstablishedError(response)
             
     def subscribe(self,channel_name,user_id):
-        chan_data=OrderedDict()
-        chan_data['user_id']=str(user_id)
-        chan_data['user_info']=OrderedDict([("name","loadtester")])
-        
-        data=OrderedDict()
-        data['channel']=channel_name
-        data['auth']="app:lalala"
-        data['channel_data'] = chan_data
-        
-        result=OrderedDict()
-        result['event']="pusher:subscribe"
-        result['data']=data
-        
-        subscribe_json = json.dumps(result)
+        subscribe_json = render_subscribe(channel_name,user_id)
         self.connection.send(subscribe_json)
         
     def unsubscribe(self,channel_name):
-        result=OrderedDict()
-        result['event']='pusher:unsubscribe'
-        result['data']=OrderedDict([("channel",channel_name)])
-        unsubscribe_json = json.dumps(result)
+        unsubscribe_json = render_unsubscribe(channel_name)
         self.connection.send(unsubscribe_json)
         
     def send_msg(self,channel_name,msg):
-        result=OrderedDict()
-        result['event']="chat_msg"
-        result['data']=OrderedDict([("message",msg)])
-        result['channel']=channel_name
-        msg_json = json.dumps(result)
+        msg_json = render_message(channel_name,msg)
         self.connection.send(msg_json)
         
     def is_connection_established(self,response):
@@ -116,11 +139,15 @@ def print_statistics():
             
 if __name__ == '__main__':
     workers=[]
+    before = time.time()
     for channel in generate_channel(options.channel_count):
         for user in generate_user(options.user_count,channel):
             workers.append(Worker(channel,options.messages_per_second,user,statistics))
-    time.sleep(10)
+    diff = time.time() - before
+    print 'Connecting taken:',diff
     print_statistics()
+    
+#    time.sleep(10)
 #    for worker in workers:
 #        gevent.spawn(worker.run)
 #    time.sleep(float(options.time_for_testing))
