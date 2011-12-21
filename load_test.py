@@ -85,6 +85,7 @@ class PusherClient(object):
     def subscribe(self,channel_name,user_id):
         subscribe_json = render_subscribe(channel_name,user_id)
         self.connection.send(subscribe_json)
+	print "Subscribed successfully"
         
     def unsubscribe(self,channel_name):
         unsubscribe_json = render_unsubscribe(channel_name)
@@ -97,6 +98,9 @@ class PusherClient(object):
     def is_connection_established(self,response):
         result = json.loads(response)
         return result.has_key("event") and result["event"] == "pusher:connection_established"
+
+    def __del__(self):
+        self.connection.close()
         
         
 class Worker(object):
@@ -136,13 +140,18 @@ def print_statistics():
     print 'Established connections:',statistics['established_connections']
     print 'Refused connections:',statistics['refused_connections']
     
+
+def work(channel,options,user,statistics):
+    worker=Worker(channel,options.messages_per_second,user,statistics)
+    time.sleep(options.time_for_testing)
             
 if __name__ == '__main__':
-    workers=[]
     before = time.time()
+    greenlets=[]
     for channel in generate_channel(options.channel_count):
         for user in generate_user(options.user_count,channel):
-            workers.append(Worker(channel,options.messages_per_second,user,statistics))
+            greenlets.append(gevent.spawn(work,channel,options,user,statistics))
+    gevent.joinall(greenlets)
     diff = time.time() - before
     print 'Connecting taken:',diff
     print_statistics()

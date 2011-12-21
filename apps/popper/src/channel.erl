@@ -33,7 +33,6 @@ unregister_user(Pid,State) when is_pid(Pid) ->
 	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
 	UserData = [{<<"user_id">>,UserId}],
 	Json = util:pusher_channel_json(<<"pusher_internal:member_removed">>,ChannelName,UserData),
-	[UserPid ! {event,Json} || {UserPid,_} <- ets:tab2list(State#state.users)],
 	{State,Json}.
 
 register_user(Pid,UserId,UserInfo,State) when is_pid(Pid) ->
@@ -63,7 +62,7 @@ handle_call(take_users,_From, State) ->
 
 handle_call({subscribe,Pid,UserId,UserInfo},_From,State) ->
 	{NewState,Json} = register_user(Pid,UserId,UserInfo,State), 
-	broadcast_event(NewState,Json),
+%	broadcast_event(NewState,Json),
 	Reply = [User  || {_,User} <- ets:tab2list(NewState#state.users)],
 	{reply, Reply, NewState}.
 
@@ -74,7 +73,7 @@ handle_cast({event,_From,EventName,ChannelName,EventData}, State) ->
 
 handle_cast({unsubscribe,UserPid},State) ->
 	{NewState,Json}=unregister_user(UserPid, State),
-	broadcast_event(NewState,Json),
+%	broadcast_event(NewState,Json),
 	case ets:info(NewState#state.users,size) of 
 		0 ->  exit(normal);
 		_ ->  {noreply, NewState}

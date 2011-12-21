@@ -54,6 +54,7 @@ handle_cast(_Msg,State) ->
 	{noreply,State}.
 
 handle_info({'EXIT',ChanPid,Reason},State) ->
+	io:format("Chan ~p Exited with reason ~p ~n",[ChanPid,Reason]),
 	remove_channel(ChanPid),
 	{noreply,State};
 

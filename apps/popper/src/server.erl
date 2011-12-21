@@ -4,7 +4,7 @@
 start_link(Port) ->
 	    misultin:start_link([{port,Port},
 				 {name, misultin_ws},
-				 {acceptors_poolsize,1000},
+				 {acceptors_poolsize,100},
 				 {max_connections,100000},
 				 {loop, fun(Req)   -> handle_http(Req) end},
 	             {ws_loop, fun(Ws) -> handle_websocket(Ws) end}]).
