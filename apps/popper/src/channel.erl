@@ -37,10 +37,7 @@ unregister_user(Pid,State) when is_pid(Pid) ->
 
 register_user(Pid,UserId,UserInfo,State) when is_pid(Pid) ->
 	ets:insert(State#state.users,{Pid,{UserId,UserInfo}}),
-	[{_,ChannelName}] = channel_hub:chan_name_by_pid(self()),
-	UserData = [{<<"user_id">>,UserId},{<<"user_info">>,UserInfo}],
-	Json = util:pusher_channel_json(<<"pusher_internal:member_added">>, ChannelName, UserData),
-	{State,Json}.
+	State.
 
 broadcast_event(State,Json) ->
 	[UserPid ! {event,Json} || {UserPid,_} <- ets:tab2list(State#state.users)].
@@ -61,10 +58,8 @@ handle_call(take_users,_From, State) ->
 	{reply, Reply, State};
 
 handle_call({subscribe,Pid,UserId,UserInfo},_From,State) ->
-	{NewState,Json} = register_user(Pid,UserId,UserInfo,State), 
-%	broadcast_event(NewState,Json),
-	Reply = [User  || {_,User} <- ets:tab2list(NewState#state.users)],
-	{reply, Reply, NewState};
+	NewState = register_user(Pid,UserId,UserInfo,State), 
+	{reply, ok, NewState};
 
 handle_call(_Msg,_From,State) ->
 	{reply,ok,State}.

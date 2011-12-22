@@ -42,16 +42,10 @@ connection_established(Ws) ->
 							[{<< "channel" >>,ChannelName}, _, {<< "channel_data" >>,ChannelData}] = Data,
 							ChanPid = channel_hub:subscribe(ChannelName),
 							{struct,[{<<"user_id">>,UserId}, {<<"user_info">>,UserInfo}]} = ChannelData,
-							Users = channel:subscribe(ChanPid, self(), UserId, UserInfo),
-							Ids = lists:map(fun(X) -> element(1,X) end,Users),
-							Count = length(Users),
-		    				RespData = [{<< "presence" >>,{struct,[{<<"ids">>,Ids},{<<"hash">>,Users},{<<"count">>,Count}]}}],
+							ok = channel:subscribe(ChanPid, self(), UserId, UserInfo),
+		    				RespData = [{<< "presence" >>,{struct,[{<<"ids">>,[1]},{<<"count">>,1}]}}],
 		    				Response = util:pusher_channel_json(<< "pusher_internal:subscription_succeeded" >>, ChannelName, RespData),
 		    				Ws:send(Response),
-							{_,Mem} =  process_info(self(),memory),
-							{_,Heap} = process_info(self(),heap_size),
-							{_,Stack} = process_info(self(),stack_size),
-							io:format("Process memory  is ~p KB, heap ~p KB, stack ~p KB ~n ",[round(Mem/1024),round(Heap/1024),round(Stack/1024)]),
 							link(ChanPid);
 						<<"pusher:unsubscribe">> ->
 							[{<<"channel">>,ChannelName}] = Data,

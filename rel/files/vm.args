@@ -10,8 +10,7 @@
 
 ## Enable kernel poll and a few async threads
 +K true
-+P 100000
--smp disable
++P 1000000
 
 ## Increase number of concurrent ports/sockets
--env ERL_MAX_PORTS 100000
+-env ERL_MAX_PORTS 1000000
