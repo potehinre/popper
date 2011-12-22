@@ -4,7 +4,7 @@
 start_link(Port) ->
 	    misultin:start_link([{port,Port},
 				 {name, misultin_ws},
-				 {acceptors_poolsize,100},
+				 {acceptors_poolsize,1000},
 				 {max_connections,100000},
 				 {loop, fun(Req)   -> handle_http(Req) end},
 	             {ws_loop, fun(Ws) -> handle_websocket(Ws) end}]).
@@ -26,7 +26,10 @@ handle('POST',["apps","popper","channels",ChannelName,"events"],Req) ->
 
 handle('GET',["favicon.ico"],Req) ->
     Path=["favicon.ico"],
-    Req:respond(404,[{"Content-Type","text/html"}],["File favicon /",Path,"not found"]).
+    Req:respond(404,[{"Content-Type","text/html"}],["File favicon /",Path,"not found"]);
+
+handle(_Type,_Path,Req) ->
+	Req:ok([]).
 
 connection_established(Ws) ->
 	receive

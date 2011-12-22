@@ -64,7 +64,10 @@ handle_call({subscribe,Pid,UserId,UserInfo},_From,State) ->
 	{NewState,Json} = register_user(Pid,UserId,UserInfo,State), 
 %	broadcast_event(NewState,Json),
 	Reply = [User  || {_,User} <- ets:tab2list(NewState#state.users)],
-	{reply, Reply, NewState}.
+	{reply, Reply, NewState};
+
+handle_call(_Msg,_From,State) ->
+	{reply,ok,State}.
 
 handle_cast({event,_From,EventName,ChannelName,EventData}, State) ->
 	Json = util:pusher_channel_json(EventName, ChannelName, EventData),
@@ -77,7 +80,10 @@ handle_cast({unsubscribe,UserPid},State) ->
 	case ets:info(NewState#state.users,size) of 
 		0 ->  exit(normal);
 		_ ->  {noreply, NewState}
-	end.
+	end;
+
+handle_cast(_,State) ->
+	{noreply,State}.
 
 handle_info({'EXIT', Pid, _Reason},State) ->
 	{NewState,Json}=unregister_user(Pid,State),

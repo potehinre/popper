@@ -14,4 +14,4 @@
 -shared
 
 ## Increase number of concurrent ports/sockets
--env ERL_MAX_PORTS 20000
+-env ERL_MAX_PORTS 100000

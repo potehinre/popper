@@ -85,7 +85,6 @@ class PusherClient(object):
     def subscribe(self,channel_name,user_id):
         subscribe_json = render_subscribe(channel_name,user_id)
         self.connection.send(subscribe_json)
-	print "Subscribed successfully"
         
     def unsubscribe(self,channel_name):
         unsubscribe_json = render_unsubscribe(channel_name)
@@ -113,6 +112,7 @@ class Worker(object):
             self.id = user_id
             self.client = PusherClient(config['host'],config['port'],config['path'])
             self.client.subscribe(channel_name,user_id)
+            print "Subscribed successfully:",+self.statistics['established_connections']
             self.statistics['established_connections']+=1
         except socket.error,e:
             print 'conref'

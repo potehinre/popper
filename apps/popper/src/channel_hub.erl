@@ -48,7 +48,10 @@ handle_call({subscribe,ChannelName},_From,State) ->
 	end;
 
 handle_call(channel_name_to_pid_info,_From,State) ->
-	{reply,ets:tab2list(channel_name_to_pid),State}.
+	{reply,ets:tab2list(channel_name_to_pid),State};
+
+handle_call(_Msg,_From,State) ->
+	{reply,ok,State}.
 
 handle_cast(_Msg,State) ->
 	{noreply,State}.
