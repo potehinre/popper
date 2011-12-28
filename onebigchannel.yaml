@@ -1,0 +1,6 @@
+- channel_name: megamatch
+  user_count: 10000
+  messages_per_second: 0.1
+- channel_name: smallmatch
+  user_count: 100
+  messages_per_second: 1
