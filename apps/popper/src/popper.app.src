@@ -6,7 +6,7 @@
   {applications, [
                   kernel,
                   stdlib,
-		  misultin
+		  cowboy
                  ]},
   {mod, { popper_app, []}},
   {env, []}
