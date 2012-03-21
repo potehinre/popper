@@ -10,12 +10,12 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    case popper_sup:start_link() of
-		{ok, Pid} ->
-		    {ok, Pid};
-		Error ->
-		    Error
-    end.
+    application:start(cowboy),
+    Dispatch = [{'_', [{'_', my_handler, []}]}],
+    cowboy:start_listener(ws_server, 100,
+  			  cowboy_tcp_transport, [{port,1234}],
+  			  cowboy_http_protocol, [{dispatch, Dispatch}]),
+    popper_sup:start_link().
 
 stop(_State) ->
     ok.

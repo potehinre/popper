@@ -25,7 +25,9 @@ start_link() ->
 
 init([]) ->
     {ok, { {one_for_one, 5, 10}, 
-		   [{chan_hub,{channel_hub,start_link,[]},
-		    permanent,5000,worker,[channel_hub]}]
+		    [
+		    {chan_hub,{channel_hub,start_link,[]},
+		    permanent,5000,worker,[channel_hub]}
+		    ]
 		 }}.
 
