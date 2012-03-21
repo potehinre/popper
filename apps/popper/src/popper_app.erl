@@ -12,7 +12,8 @@
 start(_StartType, _StartArgs) ->
     application:start(cowboy),
     Dispatch = [{'_', [
-					   {[<< "app" >>,<< "popper" >>], websocket_handler, []}
+					   {[<< "app" >>,<< "popper" >>], websocket_handler, []},
+					   {[<<"apps">>,<<"popper">>,<<"channels">>,'_',<<"events">>], http_handler, []}
 					  ]
 				}],
     cowboy:start_listener(ws_server, 100,
